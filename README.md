@@ -31,7 +31,7 @@ $ pongy -d -h 0.0.0.0 -p 8888
 $ pongy -h 192.168.1.1 -p 8888
 ```
 
-![UI screenshot](https://github.com/vyalovvldmr/pongy/blob/master/screen.png?raw=true)
+![UI screenshot](https://github.com/vyalovvldmr/pongy/blob/main/screen.png?raw=true)
 
 ## TODO
 
