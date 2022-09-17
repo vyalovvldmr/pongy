@@ -1,5 +1,5 @@
-from typing import Literal
 from enum import IntEnum
+from typing import Literal
 
 from pydantic import BaseModel
 

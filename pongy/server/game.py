@@ -1,19 +1,17 @@
-import logging
 import asyncio
+import logging
 import math
 from random import randint
 from types import TracebackType
 
 from aiohttp import web
 
-from pongy.models import (
-    WsGameStatePayload,
-    WsGameStateEvent,
-    WsEvent,
-    MoveDirection,
-    WsPlayer,
-)
 from pongy import settings
+from pongy.models import MoveDirection
+from pongy.models import WsEvent
+from pongy.models import WsGameStateEvent
+from pongy.models import WsGameStatePayload
+from pongy.models import WsPlayer
 
 
 logger = logging.getLogger(__name__)

@@ -1,20 +1,26 @@
 import asyncio
-import uuid
-import time
-import queue
-import threading
 import itertools
 import logging
-import uvloop
+import queue
+import threading
+import time
+import uuid
 from contextlib import suppress
 
 import aiohttp
 import pygame
+import uvloop
 
-from pongy.models import WsEvent, WsCommand, WsCommandMovePayload, MoveDirection
-from pongy.ui.racket import FirstRacket, SecondRacket, ThirdRacket, MyRacket
-from pongy.ui.ball import Ball
 from pongy import settings
+from pongy.models import MoveDirection
+from pongy.models import WsCommand
+from pongy.models import WsCommandMovePayload
+from pongy.models import WsEvent
+from pongy.ui.ball import Ball
+from pongy.ui.racket import FirstRacket
+from pongy.ui.racket import MyRacket
+from pongy.ui.racket import SecondRacket
+from pongy.ui.racket import ThirdRacket
 
 logger = logging.getLogger(__name__)
 
