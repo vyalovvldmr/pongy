@@ -45,6 +45,7 @@ class Game:
             (settings.BOARD_SIZE - settings.BALL_SIZE) // 2,
         ) * 2
         self.ball_angle: int = randint(20, 160)
+        self.ball_speed: int = settings.DEFAULT_BALL_SPEED
         self._run_task = asyncio.ensure_future(self.run())
 
     def add_player(self, player: Player) -> None:
@@ -56,10 +57,10 @@ class Game:
             self._run_task.cancel()
 
     def move_ball(self) -> None:
-        new_x = self.ball_position[0] + settings.BALL_SPEED * math.cos(
+        new_x = self.ball_position[0] + self.ball_speed * math.cos(
             math.radians(self.ball_angle)
         )
-        new_y = self.ball_position[1] + settings.BALL_SPEED * math.sin(
+        new_y = self.ball_position[1] + self.ball_speed * math.sin(
             math.radians(self.ball_angle)
         )
         self.ball_position = int(new_x), int(new_y)
@@ -78,6 +79,7 @@ class Game:
         ):
             new_y = settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
             self.ball_angle = randint(200, 340)
+            self.change_ball_speed()
         if (
             len(self.players) > 1
             and new_y < settings.RACKET_HEIGHT
@@ -89,6 +91,7 @@ class Game:
         ):
             new_y = settings.RACKET_HEIGHT
             self.ball_angle = randint(20, 160)
+            self.change_ball_speed()
         if (
             len(self.players) > 2
             and new_x < settings.RACKET_HEIGHT
@@ -100,6 +103,7 @@ class Game:
         ):
             new_x = settings.RACKET_HEIGHT
             self.ball_angle = randint(-70, 70)
+            self.change_ball_speed()
         if (
             len(self.players) > 3
             and new_x
@@ -112,6 +116,7 @@ class Game:
         ):
             new_x = settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
             self.ball_angle = randint(110, 250)
+            self.change_ball_speed()
         self.ball_position = int(new_x), int(new_y)
 
     def bounce(self) -> None:
@@ -172,6 +177,9 @@ class Game:
     @property
     def is_empty(self) -> bool:
         return not self.players
+
+    def change_ball_speed(self) -> None:
+        self.ball_speed = randint(4, 8)
 
 
 class GamePool:
