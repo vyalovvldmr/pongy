@@ -27,12 +27,10 @@ def main(daemon: bool, host: str, port: int) -> None:
     stream_handler.setFormatter(jsonlogger.JsonFormatter(timestamp=True))
     logging.basicConfig(level=settings.LOGGING_LEVEL, handlers=[stream_handler])
     if daemon:
-        import uvloop
         from aiohttp import web
 
         from pongy.server.app import get_application
 
-        uvloop.install()
         web.run_app(get_application(), host=host, port=port)
     else:
         from pongy.ui.app import run_app

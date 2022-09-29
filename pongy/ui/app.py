@@ -9,7 +9,6 @@ from contextlib import suppress
 
 import aiohttp
 import pygame
-import uvloop
 
 from pongy import settings
 from pongy.models import MoveDirection
@@ -64,7 +63,6 @@ def run_app(host: str, port: int):
                 logger.error("Connection error")
                 input_queue.put(Exit())
 
-        uvloop.install()
         loop = asyncio.new_event_loop()
         loop.run_until_complete(_handle())
 
