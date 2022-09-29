@@ -52,7 +52,7 @@ class Game:
 
     def remove_player(self, player: Player) -> None:
         self.players[:] = [p for p in self.players if p.uuid != player.uuid]
-        if not self.players:
+        if self.is_empty:
             self._run_task.cancel()
 
     def move_ball(self) -> None:
@@ -119,15 +119,23 @@ class Game:
         if new_x < 0:
             new_x = 0
             self.ball_angle = 180 - self.ball_angle
+            if len(self.players) > 2:
+                self.players[2].score += 1
         elif new_x > settings.BOARD_SIZE - settings.BALL_SIZE:
             new_x = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball_angle = 180 - self.ball_angle
+            if len(self.players) > 3:
+                self.players[3].score += 1
         if new_y < 0:
             new_y = 0
             self.ball_angle = -self.ball_angle
+            if len(self.players) > 1:
+                self.players[1].score += 1
         elif new_y > settings.BOARD_SIZE - settings.BALL_SIZE:
             new_y = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball_angle = -self.ball_angle
+            if len(self.players) > 0:
+                self.players[0].score += 1
         self.ball_position = int(new_x), int(new_y)
 
     def to_payload(self) -> WsGameStatePayload:
@@ -146,7 +154,7 @@ class Game:
     async def run(self) -> None:
         while True:
             await self.broadcast()
-            await asyncio.sleep(0.05)
+            await asyncio.sleep(1 / settings.FPS)
             self.move_ball()
             self.hit()
             self.bounce()
@@ -156,6 +164,14 @@ class Game:
         await asyncio.gather(
             *(subscriber.ws.send_json(payload.dict()) for subscriber in self.players)
         )
+
+    @property
+    def is_full(self) -> bool:
+        return len(self.players) == 4
+
+    @property
+    def is_empty(self) -> bool:
+        return not self.players
 
 
 class GamePool:
@@ -171,7 +187,7 @@ class GamePool:
         else:
             self._game = GamePool._awaiting
         self._game.add_player(self._player)
-        if len(self._game.players) == 4:
+        if self._game.is_full:
             GamePool._awaiting = None
         return self._game
 

@@ -15,10 +15,14 @@ from pongy.models import WsCommand
 from pongy.models import WsCommandMovePayload
 from pongy.models import WsEvent
 from pongy.ui.ball import Ball
-from pongy.ui.racket import BottomRacket
-from pongy.ui.racket import LeftRacket
-from pongy.ui.racket import RightRacket
-from pongy.ui.racket import TopRacket
+from pongy.ui.racket import BottomRacketWidget
+from pongy.ui.racket import LeftRacketWidget
+from pongy.ui.racket import RightRacketWidget
+from pongy.ui.racket import TopRacketWidget
+from pongy.ui.score import BottomScoreWidget
+from pongy.ui.score import LeftScoreWidget
+from pongy.ui.score import RightScoreWidget
+from pongy.ui.score import TopScoreWidget
 
 logger = logging.getLogger(__name__)
 
@@ -79,11 +83,18 @@ def run_app(host: str, port: int):
                 quit = True
                 break
             surface.fill(settings.BOARD_COLOR)
-            for player, racket in zip(
+            for player, racket_widget, score_widget in zip(
                 ws_event.data.payload.players,
-                (BottomRacket, TopRacket, LeftRacket, RightRacket),
+                (
+                    BottomRacketWidget,
+                    TopRacketWidget,
+                    LeftRacketWidget,
+                    RightRacketWidget,
+                ),
+                (BottomScoreWidget, TopScoreWidget, LeftScoreWidget, RightScoreWidget),
             ):
-                racket(player.racket_position).draw(surface)
+                racket_widget(player.racket_position).draw(surface)
+                score_widget(player.score).draw(surface)
 
             ball_position = ws_event.data.payload.ball_position
             Ball(ball_position).draw(surface)

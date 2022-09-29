@@ -3,7 +3,7 @@ import pygame
 from pongy import settings
 
 
-class BaseRacket:
+class BaseRacketWidget:
     def __init__(self, position):
         self._position = position
 
@@ -11,21 +11,21 @@ class BaseRacket:
         pass
 
 
-class HorizontalRacket(BaseRacket):
+class HorizontalRacketWidget(BaseRacketWidget):
     def __init__(self, position):
         super().__init__(position)
         self._width = settings.RACKET_LENGTH
         self._height = settings.RACKET_HEIGHT
 
 
-class VerticalRacket(BaseRacket):
+class VerticalRacketWidget(BaseRacketWidget):
     def __init__(self, position):
         super().__init__(position)
         self._width = settings.RACKET_HEIGHT
         self._height = settings.RACKET_LENGTH
 
 
-class TopRacket(HorizontalRacket):
+class TopRacketWidget(HorizontalRacketWidget):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -39,7 +39,7 @@ class TopRacket(HorizontalRacket):
         )
 
 
-class LeftRacket(VerticalRacket):
+class LeftRacketWidget(VerticalRacketWidget):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -53,7 +53,7 @@ class LeftRacket(VerticalRacket):
         )
 
 
-class RightRacket(VerticalRacket):
+class RightRacketWidget(VerticalRacketWidget):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -67,7 +67,7 @@ class RightRacket(VerticalRacket):
         )
 
 
-class BottomRacket(HorizontalRacket):
+class BottomRacketWidget(HorizontalRacketWidget):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
