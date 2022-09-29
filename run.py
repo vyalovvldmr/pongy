@@ -33,9 +33,10 @@ def main(daemon: bool, host: str, port: int) -> None:
 
         web.run_app(get_application(), host=host, port=port)
     else:
-        from pongy.ui.app import run_app
+        from pongy.ui.app import Application
 
-        run_app(host, port)
+        app = Application(host, port)
+        app.run()
 
 
 if __name__ == "__main__":

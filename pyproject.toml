@@ -23,6 +23,7 @@ packages = [
     { include = "pongy" },
     { include = "pongy/server" },
     { include = "pongy/ui" },
+    { include = "pongy/ui/widgets" },
     { include = "run.py" },
 ]
 

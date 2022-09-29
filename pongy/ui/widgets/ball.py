@@ -3,7 +3,7 @@ import pygame
 from pongy import settings
 
 
-class Ball:
+class BallWidget:
     def __init__(self, position):
         self._position = position
         self._width = settings.BALL_SIZE
