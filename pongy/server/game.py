@@ -22,7 +22,7 @@ class Player:
         self.uuid: str = uuid
         self.ws: web.WebSocketResponse = ws
         self.score: int = 0
-        self.racket_position: int = 325
+        self.racket_position: int = (settings.BOARD_SIZE - settings.RACKET_LENGTH) // 2
 
     def move_racket(self, direction: MoveDirection) -> None:
         if (
@@ -33,7 +33,7 @@ class Player:
         if (
             direction == MoveDirection.RIGHT
             and self.racket_position + settings.RACKET_SPEED
-            <= settings.BOARD_SIZE[0] - settings.RACKET_LENGTH
+            <= settings.BOARD_SIZE - settings.RACKET_LENGTH
         ):
             self.racket_position += settings.RACKET_SPEED
 
@@ -41,7 +41,9 @@ class Player:
 class Game:
     def __init__(self) -> None:
         self.players: list[Player] = []
-        self.ball_position: tuple[int, int] = (345, 345)
+        self.ball_position: tuple[int, int] = (
+            (settings.BOARD_SIZE - settings.BALL_SIZE) // 2,
+        ) * 2
         self.ball_angle: int = randint(0, 360)
         self._broadcaster = asyncio.ensure_future(self.broadcast())
 
@@ -63,14 +65,14 @@ class Game:
         if new_x < 0:
             new_x = 0
             self.ball_angle = 180 - self.ball_angle
-        elif new_x > settings.BOARD_SIZE[0] - 10:
-            new_x = settings.BOARD_SIZE[0] - 10
+        elif new_x > settings.BOARD_SIZE - settings.BALL_SIZE:
+            new_x = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball_angle = 180 - self.ball_angle
         if new_y < 0:
             new_y = 0
             self.ball_angle = -self.ball_angle
-        elif new_y > settings.BOARD_SIZE[0] - 10:
-            new_y = settings.BOARD_SIZE[0] - 10
+        elif new_y > settings.BOARD_SIZE - settings.BALL_SIZE:
+            new_y = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball_angle = -self.ball_angle
         self.ball_position = int(new_x), int(new_y)
 

@@ -69,7 +69,7 @@ def run_app(host: str, port: int):
     keep_connection = threading.Thread(target=ws_connection)
     keep_connection.start()
 
-    surface = pygame.display.set_mode(settings.BOARD_SIZE)
+    surface = pygame.display.set_mode((settings.BOARD_SIZE, settings.BOARD_SIZE))
     surface.fill(settings.BOARD_COLOR)
 
     while not quit:

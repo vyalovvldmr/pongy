@@ -6,8 +6,8 @@ from pongy import settings
 class Ball:
     def __init__(self, position):
         self._position = position
-        self._width = 10
-        self._height = 10
+        self._width = settings.BALL_SIZE
+        self._height = settings.BALL_SIZE
 
     def draw(self, surface):
         pygame.draw.rect(

@@ -59,7 +59,7 @@ class ThirdRacket(VerticalRacket):
             surface,
             settings.RACKET_COLOR,
             pygame.Rect(
-                settings.BOARD_SIZE[0] - settings.RACKET_HEIGHT,
+                settings.BOARD_SIZE - settings.RACKET_HEIGHT,
                 self._position,
                 self._width,
                 self._height,
@@ -74,7 +74,7 @@ class MyRacket(HorizontalRacket):
             settings.RACKET_COLOR,
             pygame.Rect(
                 self._position,
-                settings.BOARD_SIZE[0] - settings.RACKET_HEIGHT,
+                settings.BOARD_SIZE - settings.RACKET_HEIGHT,
                 self._width,
                 self._height,
             ),
