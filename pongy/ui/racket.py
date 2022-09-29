@@ -25,7 +25,7 @@ class VerticalRacket(BaseRacket):
         self._height = settings.RACKET_LENGTH
 
 
-class FirstRacket(HorizontalRacket):
+class TopRacket(HorizontalRacket):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -39,7 +39,7 @@ class FirstRacket(HorizontalRacket):
         )
 
 
-class SecondRacket(VerticalRacket):
+class LeftRacket(VerticalRacket):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -53,7 +53,7 @@ class SecondRacket(VerticalRacket):
         )
 
 
-class ThirdRacket(VerticalRacket):
+class RightRacket(VerticalRacket):
     def draw(self, surface):
         pygame.draw.rect(
             surface,
@@ -67,7 +67,7 @@ class ThirdRacket(VerticalRacket):
         )
 
 
-class MyRacket(HorizontalRacket):
+class BottomRacket(HorizontalRacket):
     def draw(self, surface):
         pygame.draw.rect(
             surface,

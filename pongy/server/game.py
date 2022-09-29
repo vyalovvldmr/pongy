@@ -45,7 +45,7 @@ class Game:
             (settings.BOARD_SIZE - settings.BALL_SIZE) // 2,
         ) * 2
         self.ball_angle: int = randint(0, 360)
-        self._broadcaster = asyncio.ensure_future(self.broadcast())
+        self._run_task = asyncio.ensure_future(self.run())
 
     def add_player(self, player: Player) -> None:
         self.players.append(player)
@@ -53,7 +53,7 @@ class Game:
     def remove_player(self, player: Player) -> None:
         self.players[:] = [p for p in self.players if p.uuid != player.uuid]
         if not self.players:
-            self._broadcaster.cancel()
+            self._run_task.cancel()
 
     def move_ball(self) -> None:
         new_x = self.ball_position[0] + settings.BALL_SPEED * math.cos(
@@ -62,6 +62,60 @@ class Game:
         new_y = self.ball_position[1] + settings.BALL_SPEED * math.sin(
             math.radians(self.ball_angle)
         )
+        self.ball_position = int(new_x), int(new_y)
+
+    def hit(self) -> None:
+        new_x, new_y = self.ball_position
+        if (
+            len(self.players) > 0
+            and new_y
+            > settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
+            and self.players[0].racket_position - settings.BALL_SIZE
+            < new_x
+            < self.players[0].racket_position
+            + settings.RACKET_LENGTH
+            + settings.BALL_SIZE
+        ):
+            new_y = settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
+            self.ball_angle = randint(200, 340)
+        if (
+            len(self.players) > 1
+            and new_y < settings.RACKET_HEIGHT
+            and self.players[1].racket_position - settings.BALL_SIZE
+            < new_x
+            < self.players[1].racket_position
+            + settings.RACKET_LENGTH
+            + settings.BALL_SIZE
+        ):
+            new_y = settings.RACKET_HEIGHT
+            self.ball_angle = randint(20, 160)
+        if (
+            len(self.players) > 2
+            and new_x < settings.RACKET_HEIGHT
+            and self.players[2].racket_position - settings.BALL_SIZE
+            < new_y
+            < self.players[2].racket_position
+            + settings.RACKET_LENGTH
+            + settings.BALL_SIZE
+        ):
+            new_x = settings.RACKET_HEIGHT
+            self.ball_angle = randint(-70, 70)
+        if (
+            len(self.players) > 3
+            and new_x
+            > settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
+            and self.players[3].racket_position - settings.BALL_SIZE
+            < new_y
+            < self.players[3].racket_position
+            + settings.RACKET_LENGTH
+            + settings.BALL_SIZE
+        ):
+            new_x = settings.BOARD_SIZE - settings.BALL_SIZE - settings.RACKET_HEIGHT
+            self.ball_angle = randint(110, 250)
+        self.ball_position = int(new_x), int(new_y)
+
+    def bounce(self) -> None:
+        new_x, new_y = self.ball_position
         if new_x < 0:
             new_x = 0
             self.ball_angle = 180 - self.ball_angle
@@ -89,19 +143,19 @@ class Game:
             ],
         )
 
-    async def broadcast(self):
+    async def run(self) -> None:
         while True:
-            await self.publish_state()
+            await self.broadcast()
             await asyncio.sleep(0.05)
             self.move_ball()
+            self.hit()
+            self.bounce()
 
-    async def publish_state(self) -> None:
+    async def broadcast(self) -> None:
         payload = WsEvent(data=WsGameStateEvent(payload=self.to_payload()))
-        for subscriber in self.players:
-            try:
-                await subscriber.ws.send_json(payload.dict())
-            except ConnectionResetError as err:
-                logger.warning(err)
+        await asyncio.gather(
+            *(subscriber.ws.send_json(payload.dict()) for subscriber in self.players)
+        )
 
 
 class GamePool:

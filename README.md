@@ -32,11 +32,3 @@ $ pongy -h 192.168.1.1 -p 8888
 ```
 
 ![UI screenshot](https://github.com/vyalovvldmr/pongy/blob/main/screen.png?raw=true)
-
-## TODO
-
-- [ ] Racket bouncing
-- [ ] Score counting
-- [ ] Test coverage
-- [ ] Think about UDP vs websockets (it should be better for realtime)
-- [ ] Think about p2p vs client-server
