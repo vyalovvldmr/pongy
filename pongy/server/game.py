@@ -44,7 +44,7 @@ class Game:
         self.ball_position: tuple[int, int] = (
             (settings.BOARD_SIZE - settings.BALL_SIZE) // 2,
         ) * 2
-        self.ball_angle: int = randint(0, 360)
+        self.ball_angle: int = randint(20, 160)
         self._run_task = asyncio.ensure_future(self.run())
 
     def add_player(self, player: Player) -> None:

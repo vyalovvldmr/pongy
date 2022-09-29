@@ -106,12 +106,12 @@ def run_app(host: str, port: int):
                 if event.key == pygame.K_q:
                     quit = True
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
+        if keys[pygame.K_LEFT] or keys[pygame.K_UP]:
             ws_event = WsCommand(
                 payload=WsCommandMovePayload(direction=MoveDirection.LEFT)
             )
             output_queue.put(ws_event)
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] or keys[pygame.K_DOWN]:
             ws_event = WsCommand(
                 payload=WsCommandMovePayload(direction=MoveDirection.RIGHT)
             )
