@@ -50,9 +50,11 @@ class Game:
 
     def add_player(self, player: Player) -> None:
         self.players.append(player)
+        logger.debug("Added new player")
 
     def remove_player(self, player: Player) -> None:
         self.players[:] = [p for p in self.players if p.uuid != player.uuid]
+        logger.debug("Removed player")
         if self.is_empty:
             self._run_task.cancel()
 
@@ -167,7 +169,8 @@ class Game:
     async def broadcast(self) -> None:
         payload = WsEvent(data=WsGameStateEvent(payload=self.to_payload()))
         await asyncio.gather(
-            *(subscriber.ws.send_json(payload.dict()) for subscriber in self.players)
+            *(subscriber.ws.send_json(payload.dict()) for subscriber in self.players),
+            return_exceptions=True
         )
 
     @property
@@ -192,6 +195,7 @@ class GamePool:
     async def __aenter__(self) -> Game:
         if not GamePool._awaiting:
             self._game = GamePool._awaiting = Game()
+            logger.debug("Created new game")
         else:
             self._game = GamePool._awaiting
         self._game.add_player(self._player)
@@ -207,5 +211,5 @@ class GamePool:
     ) -> None:
         if self._game:
             self._game.remove_player(self._player)
-            if GamePool._awaiting is self._game and not self._game.players:
+            if GamePool._awaiting is self._game and self._game.is_empty:
                 GamePool._awaiting = None

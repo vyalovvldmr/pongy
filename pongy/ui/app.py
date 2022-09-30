@@ -74,6 +74,9 @@ class Connection(threading.Thread):
         except aiohttp.ClientConnectionError:
             logger.error("Connection error")
             self._app.input_queue.put(Exit())
+        except Exception as err:  # pylint: disable=broad-except
+            logger.exception(err)
+            self._app.input_queue.put(Exit())
 
     def _connect(self) -> None:
         loop = asyncio.new_event_loop()
@@ -127,9 +130,11 @@ class Application:
     def _process_key_pressed(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                logger.debug("Got exit signal")
                 self.input_queue.put(Exit())
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
+                    logger.debug("Got exit signal")
                     self.input_queue.put(Exit())
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_UP]:
