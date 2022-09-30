@@ -59,6 +59,7 @@ class Connection(threading.Thread):
     async def _handle(self) -> None:
         player_id: str = str(uuid.uuid4())
         url = f"ws://{self._app.host}:{self._app.port}/ws"
+        process_queue_task = None
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.ws_connect(
@@ -66,7 +67,9 @@ class Connection(threading.Thread):
                     heartbeat=settings.WS_HEARTBEAT_TIMEOUT,
                     headers={"Cookie": f"player_id={player_id}"},
                 ) as ws:
-                    asyncio.ensure_future(self._process_output_queue(ws))
+                    process_queue_task = asyncio.ensure_future(
+                        self._process_output_queue(ws)
+                    )
                     async for msg in ws:
                         if msg.type == aiohttp.WSMsgType.TEXT:
                             ws_event = WsEvent.parse_raw(msg.data)
@@ -77,6 +80,12 @@ class Connection(threading.Thread):
         except Exception as err:  # pylint: disable=broad-except
             logger.exception(err)
             self._app.input_queue.put(Exit())
+        else:
+            logger.error("Connection lost")
+            self._app.input_queue.put(Exit())
+        finally:
+            if process_queue_task:
+                process_queue_task.cancel()
 
     def _connect(self) -> None:
         loop = asyncio.new_event_loop()
