@@ -1,7 +1,8 @@
 lint:
 	black --check .
 	flake8
-	mypy pongy
+	mypy --strict pongy
+	pylint pongy
 test:
 	pytest --cov
 release:

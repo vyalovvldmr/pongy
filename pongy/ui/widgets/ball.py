@@ -4,12 +4,12 @@ from pongy import settings
 
 
 class BallWidget:
-    def __init__(self, position):
+    def __init__(self, position: tuple[int, int]):
         self._position = position
         self._width = settings.BALL_SIZE
         self._height = settings.BALL_SIZE
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         pygame.draw.rect(
             surface,
             settings.BALL_COLOR,

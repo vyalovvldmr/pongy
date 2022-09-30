@@ -14,7 +14,9 @@ from pongy import settings
 from pongy.models import MoveDirection
 from pongy.models import WsCommand
 from pongy.models import WsCommandMovePayload
+from pongy.models import WsErrorEvent
 from pongy.models import WsEvent
+from pongy.models import WsGameStateEvent
 from pongy.ui.widgets.ball import BallWidget
 from pongy.ui.widgets.racket import BottomRacketWidget
 from pongy.ui.widgets.racket import LeftRacketWidget
@@ -35,8 +37,8 @@ class Exit:
 class IApplication(Protocol):
     host: str
     port: int
-    input_queue: queue.Queue
-    output_queue: queue.Queue
+    input_queue: queue.Queue[Exit | WsEvent]
+    output_queue: queue.Queue[WsCommand]
 
 
 class Connection(threading.Thread):
@@ -44,19 +46,19 @@ class Connection(threading.Thread):
         super().__init__(daemon=True)
         self._app = app
 
-    def run(self):
-        self._ws_connection()
+    def run(self) -> None:
+        self._connect()
 
-    def connect(self):
+    def connect(self) -> None:
         self.start()
 
-    async def _process_output_queue(self, ws):
+    async def _process_output_queue(self, ws: aiohttp.ClientWebSocketResponse) -> None:
         while True:
             await asyncio.sleep(0.01)
             with suppress(queue.Empty):
                 await ws.send_json(self._app.output_queue.get_nowait().dict())
 
-    async def _handle(self):
+    async def _handle(self) -> None:
         player_id: str = str(uuid.uuid4())
         url = f"ws://{self._app.host}:{self._app.port}/ws"
         try:
@@ -75,7 +77,7 @@ class Connection(threading.Thread):
             logger.error("Connection error")
             self._app.input_queue.put(Exit())
 
-    def _ws_connection(self):
+    def _connect(self) -> None:
         loop = asyncio.new_event_loop()
         loop.run_until_complete(self._handle())
 
@@ -85,10 +87,10 @@ class Application:
         self._quit: bool = False
         self.host: str = host
         self.port: int = port
-        self.input_queue: queue.Queue = queue.Queue()
-        self.output_queue: queue.Queue = queue.Queue()
+        self.input_queue: queue.Queue[Exit | WsEvent] = queue.Queue()
+        self.output_queue: queue.Queue[WsCommand] = queue.Queue()
 
-    def run(self):
+    def run(self) -> None:
         self._connect()
         pygame.init()
         surface = pygame.display.set_mode((settings.BOARD_SIZE, settings.BOARD_SIZE))
@@ -100,25 +102,27 @@ class Application:
             self._process_key_pressed()
         pygame.quit()
 
-    def _connect(self):
-        connection = Connection(self)
+    def _connect(self) -> None:
+        connection = Connection(app=self)
         connection.connect()
 
-    def _redraw_field(self, surface, ws_event):
+    def _redraw_field(
+        self, surface: pygame.surface.Surface, ws_event: WsGameStateEvent
+    ) -> None:
         surface.fill(settings.BOARD_COLOR)
         for player, racket_widget, score_widget in zip(
-            ws_event.data.payload.players,
+            ws_event.payload.players,
             (BottomRacketWidget, TopRacketWidget, LeftRacketWidget, RightRacketWidget),
             (BottomScoreWidget, TopScoreWidget, LeftScoreWidget, RightScoreWidget),
         ):
             racket_widget(player.racket_position).draw(surface)
             score_widget(player.score).draw(surface)
 
-        ball_position = ws_event.data.payload.ball_position
+        ball_position = ws_event.payload.ball_position
         BallWidget(ball_position).draw(surface)
         pygame.display.flip()
 
-    def _process_pygame_events(self):
+    def _process_pygame_events(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._quit = True
@@ -126,7 +130,7 @@ class Application:
                 if event.key == pygame.K_q:
                     self._quit = True
 
-    def _process_key_pressed(self):
+    def _process_key_pressed(self) -> None:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_UP]:
             ws_event = WsCommand(
@@ -139,10 +143,13 @@ class Application:
             )
             self.output_queue.put(ws_event)
 
-    def _process_input_queue(self, surface):
+    def _process_input_queue(self, surface: pygame.surface.Surface) -> None:
         while not self.input_queue.empty():
             ws_event = self.input_queue.get_nowait()
             if isinstance(ws_event, Exit):
                 self._quit = True
                 break
-            self._redraw_field(surface, ws_event)
+            if isinstance(ws_event.data, WsGameStateEvent):
+                self._redraw_field(surface, ws_event.data)
+            elif isinstance(ws_event.data, WsErrorEvent):
+                logger.error(ws_event.data.payload.message)

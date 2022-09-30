@@ -30,15 +30,16 @@ repos:
     -   id: flake8
 -   repo: local
     hooks:
-#    -   id: pylint
-#        name: pylint
-#        entry: pylint
-#        files: pongy
-#        language: system
-#        types: [python]
-#        require_serial: true
+    -   id: pylint
+        name: pylint
+        entry: pylint
+        files: pongy
+        language: system
+        types: [python]
+        require_serial: true
     -   id: mypy
         name: mypy
+        args: [--strict]
         entry: mypy
         files: pongy
         language: system

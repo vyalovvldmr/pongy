@@ -6,10 +6,10 @@ from pongy import settings
 class BaseScoreWidget:
     position = (0, 0)
 
-    def __init__(self, score):
+    def __init__(self, score: int):
         self._score = str(score)
 
-    def draw(self, surface):
+    def draw(self, surface: pygame.surface.Surface) -> None:
         font = pygame.font.SysFont("arial", settings.SCORE_TEXT_SIZE)
         text = font.render(self._score, True, settings.SCORE_COLOR)
         surface.blit(text, self.position)

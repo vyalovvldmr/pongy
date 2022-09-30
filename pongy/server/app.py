@@ -28,7 +28,7 @@ class WebsocketHandler(web.View):
                     if message.type == WSMsgType.TEXT:
                         command = WsCommand(**json.loads(message.data))
                         player.move_racket(command.payload.direction)
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             await self.send_error(err, ws)
             return ws
         else:

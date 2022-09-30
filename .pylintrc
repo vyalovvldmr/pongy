@@ -4,3 +4,8 @@ disable=
     missing-docstring,
     too-few-public-methods,
     too-many-instance-attributes
+good-names=
+    ws,
+extension-pkg-whitelist=
+    pydantic,
+    pygame,
