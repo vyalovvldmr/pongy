@@ -2,7 +2,6 @@ import asyncio
 import logging
 import queue
 import threading
-import time
 import uuid
 from typing import Protocol
 
@@ -83,7 +82,6 @@ class Connection(threading.Thread):
 
 class Application:
     def __init__(self, host: str, port: int):
-        self._quit: bool = False
         self.host: str = host
         self.port: int = port
         self.input_queue: queue.Queue[Exit | WsEvent] = queue.Queue()
@@ -94,19 +92,23 @@ class Application:
         pygame.init()
         surface = pygame.display.set_mode((settings.BOARD_SIZE, settings.BOARD_SIZE))
         surface.fill(settings.BOARD_COLOR)
-        while not self._quit:
-            time.sleep(1 / settings.FPS)
+        while True:
+            ws_event = self.input_queue.get(block=True)
+            if isinstance(ws_event, Exit):
+                logger.info("Exit")
+                break
+            if isinstance(ws_event.data, WsErrorEvent):
+                logger.error(ws_event.data.payload.message)
+                break
             self._process_key_pressed()
-            latest_ws_event = self._process_input_queue()
-            if latest_ws_event:
-                self._redraw_field(surface, latest_ws_event)
+            self._redraw(surface, ws_event.data)
         pygame.quit()
 
     def _connect(self) -> None:
         connection = Connection(app=self)
         connection.connect()
 
-    def _redraw_field(
+    def _redraw(
         self, surface: pygame.surface.Surface, ws_event: WsGameStateEvent
     ) -> None:
         surface.fill(settings.BOARD_COLOR)
@@ -125,10 +127,10 @@ class Application:
     def _process_key_pressed(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self._quit = True
+                self.input_queue.put(Exit())
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    self._quit = True
+                    self.input_queue.put(Exit())
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_UP]:
             ws_event = WsCommand(
@@ -140,16 +142,3 @@ class Application:
                 payload=WsCommandMovePayload(direction=MoveDirection.RIGHT)
             )
             self.output_queue.put(ws_event)
-
-    def _process_input_queue(self) -> WsGameStateEvent | None:
-        latest_ws_event = None
-        while not self.input_queue.empty():
-            ws_event = self.input_queue.get_nowait()
-            if isinstance(ws_event, Exit):
-                self._quit = True
-                break
-            if isinstance(ws_event.data, WsGameStateEvent):
-                latest_ws_event = ws_event.data
-            elif isinstance(ws_event.data, WsErrorEvent):
-                logger.error(ws_event.data.payload.message)
-        return latest_ws_event
