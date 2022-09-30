@@ -4,7 +4,6 @@ import queue
 import threading
 import time
 import uuid
-from contextlib import suppress
 from typing import Protocol
 
 import aiohttp
@@ -54,8 +53,8 @@ class Connection(threading.Thread):
 
     async def _process_output_queue(self, ws: aiohttp.ClientWebSocketResponse) -> None:
         while True:
-            await asyncio.sleep(0.01)
-            with suppress(queue.Empty):
+            await asyncio.sleep(1 / (settings.FPS * 10))
+            while not self._app.output_queue.empty():
                 await ws.send_json(self._app.output_queue.get_nowait().dict())
 
     async def _handle(self) -> None:
@@ -96,10 +95,11 @@ class Application:
         surface = pygame.display.set_mode((settings.BOARD_SIZE, settings.BOARD_SIZE))
         surface.fill(settings.BOARD_COLOR)
         while not self._quit:
-            time.sleep(0.01)
-            self._process_input_queue(surface)
-            self._process_pygame_events()
+            time.sleep(1 / settings.FPS)
             self._process_key_pressed()
+            latest_ws_event = self._process_input_queue()
+            if latest_ws_event:
+                self._redraw_field(surface, latest_ws_event)
         pygame.quit()
 
     def _connect(self) -> None:
@@ -122,15 +122,13 @@ class Application:
         BallWidget(ball_position).draw(surface)
         pygame.display.flip()
 
-    def _process_pygame_events(self) -> None:
+    def _process_key_pressed(self) -> None:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self._quit = True
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     self._quit = True
-
-    def _process_key_pressed(self) -> None:
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT] or keys[pygame.K_UP]:
             ws_event = WsCommand(
@@ -143,13 +141,15 @@ class Application:
             )
             self.output_queue.put(ws_event)
 
-    def _process_input_queue(self, surface: pygame.surface.Surface) -> None:
+    def _process_input_queue(self) -> WsGameStateEvent | None:
+        latest_ws_event = None
         while not self.input_queue.empty():
             ws_event = self.input_queue.get_nowait()
             if isinstance(ws_event, Exit):
                 self._quit = True
                 break
             if isinstance(ws_event.data, WsGameStateEvent):
-                self._redraw_field(surface, ws_event.data)
+                latest_ws_event = ws_event.data
             elif isinstance(ws_event.data, WsErrorEvent):
                 logger.error(ws_event.data.payload.message)
+        return latest_ws_event

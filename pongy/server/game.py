@@ -179,7 +179,7 @@ class Game:
         return not self.players
 
     def change_ball_speed(self) -> None:
-        self.ball_speed = randint(4, 8)
+        self.ball_speed = randint(settings.MIN_BALL_SPPED, settings.MAX_BALL_SPPED)
 
 
 class GamePool:
