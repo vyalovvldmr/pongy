@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pongy"
-version = "0.2.5"
+version = "0.3.0"
 description = "Ping-pong multiplayer client-server game up to 4 players over network in early development stage."
 authors = ["Vladimir Vyalov <vyalov.v@gmail.com>"]
 license = "AGPL-3.0-or-later"
