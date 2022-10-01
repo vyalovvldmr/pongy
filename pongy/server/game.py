@@ -163,7 +163,7 @@ class Game:
 
     async def run(self) -> None:
         while True:
-            await self.broadcast()
+            asyncio.create_task(self.broadcast())
             await asyncio.sleep(1 / settings.FPS)
             self.move_ball()
             self.hit()
