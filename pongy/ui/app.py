@@ -3,6 +3,7 @@ import logging
 import queue
 import threading
 import uuid
+from typing import Any
 from typing import Protocol
 
 import aiohttp
@@ -59,7 +60,7 @@ class Connection(threading.Thread):
     async def _handle(self) -> None:
         player_id: str = str(uuid.uuid4())
         url = f"ws://{self._app.host}:{self._app.port}/ws"
-        process_queue_task = None
+        process_queue_task: asyncio.Task[Any] | None = None
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.ws_connect(
@@ -67,7 +68,7 @@ class Connection(threading.Thread):
                     heartbeat=settings.WS_HEARTBEAT_TIMEOUT,
                     headers={"Cookie": f"player_id={player_id}"},
                 ) as ws:
-                    process_queue_task = asyncio.ensure_future(
+                    process_queue_task = asyncio.create_task(
                         self._process_output_queue(ws)
                     )
                     async for msg in ws:
@@ -76,14 +77,12 @@ class Connection(threading.Thread):
                             self._app.input_queue.put(ws_event)
         except aiohttp.ClientConnectionError:
             logger.error("Connection error")
-            self._app.input_queue.put(Exit())
         except Exception as err:  # pylint: disable=broad-except
             logger.exception(err)
-            self._app.input_queue.put(Exit())
         else:
             logger.error("Connection lost")
-            self._app.input_queue.put(Exit())
         finally:
+            self._app.input_queue.put(Exit())
             if process_queue_task:
                 process_queue_task.cancel()
 

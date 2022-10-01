@@ -3,6 +3,7 @@ import logging
 import math
 from random import randint
 from types import TracebackType
+from typing import Any
 
 from aiohttp import web
 
@@ -25,17 +26,19 @@ class Player:
         self.racket_position: int = (settings.BOARD_SIZE - settings.RACKET_LENGTH) // 2
 
     def move_racket(self, direction: MoveDirection) -> None:
-        if (
-            direction == MoveDirection.LEFT
-            and self.racket_position - settings.RACKET_SPEED >= 0
-        ):
-            self.racket_position -= settings.RACKET_SPEED
-        if (
-            direction == MoveDirection.RIGHT
-            and self.racket_position + settings.RACKET_SPEED
-            <= settings.BOARD_SIZE - settings.RACKET_LENGTH
-        ):
-            self.racket_position += settings.RACKET_SPEED
+        if direction == MoveDirection.LEFT:
+            if self.racket_position - settings.RACKET_SPEED >= 0:
+                self.racket_position -= settings.RACKET_SPEED
+            else:
+                self.racket_position = 0
+        if direction == MoveDirection.RIGHT:
+            if (
+                self.racket_position + settings.RACKET_SPEED
+                <= settings.BOARD_SIZE - settings.RACKET_LENGTH
+            ):
+                self.racket_position += settings.RACKET_SPEED
+            else:
+                self.racket_position = settings.BOARD_SIZE - settings.RACKET_LENGTH
 
 
 class Game:
@@ -46,7 +49,7 @@ class Game:
         ) * 2
         self.ball_angle: int = randint(20, 160)
         self.ball_speed: int = settings.DEFAULT_BALL_SPEED
-        self._run_task = asyncio.ensure_future(self.run())
+        self._run_task: asyncio.Task[Any] = asyncio.create_task(self.run())
 
     def add_player(self, player: Player) -> None:
         self.players.append(player)

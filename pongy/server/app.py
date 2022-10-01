@@ -1,7 +1,9 @@
 import json
 import logging
+import weakref
 
 from aiohttp import web
+from aiohttp import WSCloseCode
 from aiohttp import WSMsgType
 from pydantic.error_wrappers import ValidationError
 
@@ -20,6 +22,7 @@ class WebsocketHandler(web.View):
     async def get(self) -> web.WebSocketResponse:
         ws = web.WebSocketResponse()
         await ws.prepare(self.request)
+        self.request.app["websockets"].add(ws)
         try:
             cookie = WsCookie(**self.request.cookies)
             player = Player(uuid=cookie.player_id, ws=ws)
@@ -30,10 +33,11 @@ class WebsocketHandler(web.View):
                         player.move_racket(command.payload.direction)
         except Exception as err:  # pylint: disable=broad-except
             await self.send_error(err, ws)
-            return ws
         else:
             logger.debug("Websocket connection closed")
-            return ws
+        finally:
+            self.request.app["websockets"].discard(ws)
+        return ws
 
     @staticmethod
     async def send_error(error: Exception, ws: web.WebSocketResponse) -> None:
@@ -56,8 +60,15 @@ class IndexHandler(web.View):
         return web.json_response({})
 
 
+async def on_shutdown(app: web.Application) -> None:
+    for ws in set(app["websockets"]):
+        await ws.close(code=WSCloseCode.GOING_AWAY, message="Server shutdown")
+
+
 def get_application() -> web.Application:
     app = web.Application()
+    app["websockets"] = weakref.WeakSet()
+    app.on_shutdown.append(on_shutdown)
     app.router.add_route("GET", "/", IndexHandler)
     app.router.add_route("GET", "/ws", WebsocketHandler)
     return app
