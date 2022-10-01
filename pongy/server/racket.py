@@ -5,6 +5,7 @@ from typing import Protocol
 from pongy import settings
 from pongy.models import BoardSide
 from pongy.models import MoveDirection
+from pongy.models import WsRacket
 from pongy.server.ball import IBall
 
 
@@ -19,6 +20,9 @@ class IRacket(Protocol):
         pass
 
     def reset(self) -> None:
+        pass
+
+    def to_payload(self) -> WsRacket:
         pass
 
 
@@ -48,7 +52,14 @@ class BaseRacket:
             else:
                 self.position = settings.BOARD_SIZE - settings.RACKET_LENGTH
 
+    def to_payload(self) -> WsRacket:
+        return WsRacket(
+            position=self.position,
+            side=self.side,
+        )
 
+
+@dataclass
 class BottomRacket(BaseRacket):
     side: BoardSide = BoardSide.BOTTOM
 
@@ -66,6 +77,7 @@ class BottomRacket(BaseRacket):
         ball.position = int(new_x), int(new_y)
 
 
+@dataclass
 class TopRacket(BaseRacket):
     side: BoardSide = BoardSide.TOP
 
@@ -83,6 +95,7 @@ class TopRacket(BaseRacket):
         ball.position = int(new_x), int(new_y)
 
 
+@dataclass
 class LeftRacket(BaseRacket):
     side: BoardSide = BoardSide.LEFT
 
@@ -100,6 +113,7 @@ class LeftRacket(BaseRacket):
         ball.position = int(new_x), int(new_y)
 
 
+@dataclass
 class RightRacket(BaseRacket):
     side: BoardSide = BoardSide.RIGHT
 

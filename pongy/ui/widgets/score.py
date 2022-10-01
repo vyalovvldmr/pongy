@@ -1,6 +1,7 @@
 import pygame
 
 from pongy import settings
+from pongy.models import BoardSide
 
 
 class BaseScoreWidget:
@@ -41,3 +42,17 @@ class RightScoreWidget(BaseScoreWidget):
         settings.BOARD_SIZE // 2 + settings.SCORE_TEXT_SHIFT,
         settings.BOARD_SIZE // 2,
     )
+
+
+class ScoreWidgetFactory:
+    def __init__(self, side: BoardSide):
+        self.side = side
+
+    def create(self, score: int) -> BaseScoreWidget:
+        mapping = {
+            BoardSide.RIGHT: RightScoreWidget,
+            BoardSide.LEFT: LeftScoreWidget,
+            BoardSide.TOP: TopScoreWidget,
+            BoardSide.BOTTOM: BottomScoreWidget,
+        }
+        return mapping[self.side](score)

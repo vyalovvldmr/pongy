@@ -8,7 +8,6 @@ from pongy.models import BoardSide
 from pongy.models import WsEvent
 from pongy.models import WsGameStateEvent
 from pongy.models import WsGameStatePayload
-from pongy.models import WsPlayer
 from pongy.server.ball import Ball
 from pongy.server.ball import IBall
 from pongy.server.player import IPlayer
@@ -75,15 +74,8 @@ class Game:
 
     def to_payload(self) -> WsGameStatePayload:
         return WsGameStatePayload(
-            ball_position=self.ball.position,
-            players=[
-                WsPlayer(
-                    uuid=player.uuid,
-                    score=player.score,
-                    racket_position=player.racket.position,
-                )
-                for player in self.players
-            ],
+            ball=self.ball.to_payload(),
+            players=[player.to_payload() for player in self.players],
         )
 
     async def run(self) -> None:

@@ -4,6 +4,7 @@ from random import randint
 from typing import Protocol
 
 from pongy import settings
+from pongy.models import WsBall
 
 
 class IBall(Protocol):
@@ -15,6 +16,9 @@ class IBall(Protocol):
         pass
 
     def change_speed(self) -> None:
+        pass
+
+    def to_payload(self) -> WsBall:
         pass
 
 
@@ -32,3 +36,6 @@ class Ball:
 
     def change_speed(self) -> None:
         self.speed = randint(settings.MIN_BALL_SPPED, settings.MAX_BALL_SPEED)
+
+    def to_payload(self) -> WsBall:
+        return WsBall(position=self.position)

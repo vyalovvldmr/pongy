@@ -25,15 +25,27 @@ class WsErrorEvent(BaseModel):
     payload: WsErrorEventPayload
 
 
+class WsRacket(BaseModel):
+    position: int
+    side: BoardSide
+
+
 class WsPlayer(BaseModel):
     uuid: str
     score: int
-    racket_position: int
+    racket: WsRacket
+
+    class Config:
+        use_enum_values = True
+
+
+class WsBall(BaseModel):
+    position: tuple[int, int]
 
 
 class WsGameStatePayload(BaseModel):
     players: list[WsPlayer]
-    ball_position: tuple[int, int]
+    ball: WsBall
 
 
 class WsGameStateEvent(BaseModel):

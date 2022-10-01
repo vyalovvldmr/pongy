@@ -17,14 +17,8 @@ from pongy.models import WsErrorEvent
 from pongy.models import WsEvent
 from pongy.models import WsGameStateEvent
 from pongy.ui.widgets.ball import BallWidget
-from pongy.ui.widgets.racket import BottomRacketWidget
-from pongy.ui.widgets.racket import LeftRacketWidget
-from pongy.ui.widgets.racket import RightRacketWidget
-from pongy.ui.widgets.racket import TopRacketWidget
-from pongy.ui.widgets.score import BottomScoreWidget
-from pongy.ui.widgets.score import LeftScoreWidget
-from pongy.ui.widgets.score import RightScoreWidget
-from pongy.ui.widgets.score import TopScoreWidget
+from pongy.ui.widgets.racket import RacketWidgetFactory
+from pongy.ui.widgets.score import ScoreWidgetFactory
 
 logger = logging.getLogger(__name__)
 
@@ -123,15 +117,15 @@ class Application:
         self, surface: pygame.surface.Surface, ws_event: WsGameStateEvent
     ) -> None:
         surface.fill(settings.BOARD_COLOR)
-        for player, racket_widget, score_widget in zip(
-            ws_event.payload.players,
-            (BottomRacketWidget, TopRacketWidget, LeftRacketWidget, RightRacketWidget),
-            (BottomScoreWidget, TopScoreWidget, LeftScoreWidget, RightScoreWidget),
-        ):
-            racket_widget(player.racket_position).draw(surface)
-            score_widget(player.score).draw(surface)
+        for player in ws_event.payload.players:
+            racket_widget = RacketWidgetFactory(player.racket.side).create(
+                player.racket.position
+            )
+            score_widget = ScoreWidgetFactory(player.racket.side).create(player.score)
+            racket_widget.draw(surface)
+            score_widget.draw(surface)
 
-        ball_position = ws_event.payload.ball_position
+        ball_position = ws_event.payload.ball.position
         BallWidget(ball_position).draw(surface)
         pygame.display.flip()
 

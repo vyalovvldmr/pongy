@@ -1,6 +1,7 @@
 import pygame
 
 from pongy import settings
+from pongy.models import BoardSide
 
 
 class BaseRacketWidget:
@@ -79,3 +80,17 @@ class BottomRacketWidget(HorizontalRacketWidget):
                 self._height,
             ),
         )
+
+
+class RacketWidgetFactory:
+    def __init__(self, side: BoardSide):
+        self.side = side
+
+    def create(self, position: int) -> BaseRacketWidget:
+        mapping = {
+            BoardSide.RIGHT: RightRacketWidget,
+            BoardSide.LEFT: LeftRacketWidget,
+            BoardSide.TOP: TopRacketWidget,
+            BoardSide.BOTTOM: BottomRacketWidget,
+        }
+        return mapping[self.side](position)
