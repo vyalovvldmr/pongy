@@ -3,14 +3,14 @@ from random import randint
 from typing import Protocol
 
 from pongy import settings
+from pongy.models import BoardSide
 from pongy.models import MoveDirection
-from pongy.models import RacketSide
 from pongy.server.ball import IBall
 
 
 class IRacket(Protocol):
     position: int
-    side: RacketSide
+    side: BoardSide
 
     def hit(self, ball: IBall) -> None:
         pass
@@ -25,7 +25,7 @@ class IRacket(Protocol):
 @dataclass
 class BaseRacket:
     position: int = (settings.BOARD_SIZE - settings.RACKET_LENGTH) // 2
-    side: RacketSide = RacketSide.BOTTOM
+    side: BoardSide = BoardSide.BOTTOM
 
     def hit(self, ball: IBall) -> None:
         pass
@@ -50,7 +50,7 @@ class BaseRacket:
 
 
 class BottomRacket(BaseRacket):
-    side: RacketSide = RacketSide.BOTTOM
+    side: BoardSide = BoardSide.BOTTOM
 
     def hit(self, ball: IBall) -> None:
         new_x, new_y = ball.position
@@ -67,7 +67,7 @@ class BottomRacket(BaseRacket):
 
 
 class TopRacket(BaseRacket):
-    side: RacketSide = RacketSide.TOP
+    side: BoardSide = BoardSide.TOP
 
     def hit(self, ball: IBall) -> None:
         new_x, new_y = ball.position
@@ -84,7 +84,7 @@ class TopRacket(BaseRacket):
 
 
 class LeftRacket(BaseRacket):
-    side: RacketSide = RacketSide.LEFT
+    side: BoardSide = BoardSide.LEFT
 
     def hit(self, ball: IBall) -> None:
         new_x, new_y = ball.position
@@ -101,7 +101,7 @@ class LeftRacket(BaseRacket):
 
 
 class RightRacket(BaseRacket):
-    side: RacketSide = RacketSide.RIGHT
+    side: BoardSide = BoardSide.RIGHT
 
     def hit(self, ball: IBall) -> None:
         new_x, new_y = ball.position

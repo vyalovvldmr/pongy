@@ -4,13 +4,14 @@ from types import TracebackType
 from typing import Any
 
 from pongy import settings
+from pongy.models import BoardSide
 from pongy.models import WsEvent
 from pongy.models import WsGameStateEvent
 from pongy.models import WsGameStatePayload
 from pongy.models import WsPlayer
 from pongy.server.ball import Ball
 from pongy.server.ball import IBall
-from pongy.server.player import Player
+from pongy.server.player import IPlayer
 from pongy.server.racket import BottomRacket
 from pongy.server.racket import IRacket
 from pongy.server.racket import LeftRacket
@@ -28,11 +29,11 @@ class Game:
             TopRacket(),
             BottomRacket(),
         ]
-        self.players: list[Player] = []
+        self.players: list[IPlayer] = []
         self.ball: IBall = Ball()
         self._run_task: asyncio.Task[Any] = asyncio.create_task(self.run())
 
-    def add_player(self, player: Player) -> None:
+    def add_player(self, player: IPlayer) -> None:
         try:
             player.racket = self.available_rackets.pop()
         except IndexError:
@@ -40,7 +41,7 @@ class Game:
         self.players.append(player)
         logger.debug("Added new player")
 
-    def remove_player(self, player: Player) -> None:
+    def remove_player(self, player: IPlayer) -> None:
         player.racket.reset()
         self.available_rackets.append(player.racket)
         self.players[:] = [p for p in self.players if p.uuid != player.uuid]
@@ -48,28 +49,28 @@ class Game:
         if self.is_empty:
             self._run_task.cancel()
 
+    def bounce_notify(self, side: BoardSide) -> None:
+        for player in self.players:
+            player.bounce_notify(side)
+
     def bounce(self) -> None:
         new_x, new_y = self.ball.position
         if new_x < 0:
             new_x = 0
             self.ball.angle = 180 - self.ball.angle
-            if len(self.players) > 2:
-                self.players[2].score += 1
+            self.bounce_notify(BoardSide.LEFT)
         elif new_x > settings.BOARD_SIZE - settings.BALL_SIZE:
             new_x = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball.angle = 180 - self.ball.angle
-            if len(self.players) > 3:
-                self.players[3].score += 1
+            self.bounce_notify(BoardSide.RIGHT)
         if new_y < 0:
             new_y = 0
             self.ball.angle = -self.ball.angle
-            if len(self.players) > 1:
-                self.players[1].score += 1
+            self.bounce_notify(BoardSide.TOP)
         elif new_y > settings.BOARD_SIZE - settings.BALL_SIZE:
             new_y = settings.BOARD_SIZE - settings.BALL_SIZE
             self.ball.angle = -self.ball.angle
-            if len(self.players) > 0:
-                self.players[0].score += 1
+            self.bounce_notify(BoardSide.BOTTOM)
         self.ball.position = int(new_x), int(new_y)
 
     def to_payload(self) -> WsGameStatePayload:
@@ -113,8 +114,8 @@ class Game:
 class GamePool:
     _awaiting: Game | None = None
 
-    def __init__(self, player: Player) -> None:
-        self._player: Player = player
+    def __init__(self, player: IPlayer) -> None:
+        self._player: IPlayer = player
         self._game: Game | None = None
 
     async def __aenter__(self) -> Game:

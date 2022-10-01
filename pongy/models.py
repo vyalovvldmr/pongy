@@ -9,7 +9,7 @@ class MoveDirection(IntEnum):
     RIGHT = 2
 
 
-class RacketSide(IntEnum):
+class BoardSide(IntEnum):
     BOTTOM = 1
     TOP = 2
     LEFT = 3
