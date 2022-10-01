@@ -13,7 +13,7 @@ from pongy.models import WsErrorEvent
 from pongy.models import WsErrorEventPayload
 from pongy.models import WsEvent
 from pongy.server.game import GamePool
-from pongy.server.game import Player
+from pongy.server.player import Player
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class WebsocketHandler(web.View):
                 async for message in ws:
                     if message.type == WSMsgType.TEXT:
                         command = WsCommand(**json.loads(message.data))
-                        player.move_racket(command.payload.direction)
+                        player.racket.move(command.payload.direction)
         except Exception as err:  # pylint: disable=broad-except
             await self.send_error(err, ws)
         else:

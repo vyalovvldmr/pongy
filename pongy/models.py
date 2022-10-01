@@ -9,6 +9,13 @@ class MoveDirection(IntEnum):
     RIGHT = 2
 
 
+class RacketSide(IntEnum):
+    BOTTOM = 1
+    TOP = 2
+    LEFT = 3
+    RIGHT = 4
+
+
 class WsErrorEventPayload(BaseModel):
     message: str
 
