@@ -1,12 +1,14 @@
 import asyncio
 import logging
-import threading
+from contextlib import suppress
 from typing import Any
-from typing import Protocol
 
 import aiohttp
 
 from pongy import settings
+from pongy.models import MoveDirection
+from pongy.models import WsCommand
+from pongy.models import WsCommandMovePayload
 from pongy.models import WsEvent
 
 logger = logging.getLogger(__name__)
@@ -16,38 +18,40 @@ class ExitEvent:
     pass
 
 
-class IApi(Protocol):
-    async def publish_commands(self, ws: aiohttp.ClientWebSocketResponse) -> None:
-        pass
-
-    def notify(self, ws_event: WsEvent | ExitEvent) -> None:
-        pass
-
-
-class WebsocketConnection(threading.Thread):
+class WebsocketConnection:
     def __init__(
         self,
-        api: IApi,
         host: str = settings.SERVER_HOST,
         port: int = settings.SERVER_PORT,
         headers: dict[str, str] | None = None,
     ):
-        super().__init__(daemon=True)
         self._headers: dict[str, str] = headers or {}
         self._host: str = host
         self._port: int = port
-        self._api: IApi = api
+        self._ws: aiohttp.ClientWebSocketResponse | None = None
+        self._event_queue: asyncio.Queue[WsEvent | ExitEvent] = asyncio.Queue()
+        self._background_task: asyncio.Task[Any] | None = None
 
-    def run(self) -> None:
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(self._keep_connection())
+    async def __aenter__(self) -> "WebsocketConnection":
+        self._background_task = asyncio.create_task(self._keep_connection())
+        return self
 
-    def connect(self) -> None:
-        self.start()
+    async def __aexit__(self, *args: tuple[Any, ...]) -> None:
+        if self._background_task:
+            self._background_task.cancel()
+            with suppress(asyncio.CancelledError):
+                await self._background_task
+
+    async def send_action(self, direction: MoveDirection) -> None:
+        if self._ws:
+            ws_event = WsCommand(payload=WsCommandMovePayload(direction=direction))
+            await self._ws.send_json(ws_event.dict())
+
+    async def get_event_blocking(self) -> ExitEvent | WsEvent:
+        return await self._event_queue.get()
 
     async def _keep_connection(self) -> None:
         url = f"ws://{self._host}:{self._port}/ws"
-        publish_commands_task: asyncio.Task[Any] | None = None
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.ws_connect(
@@ -55,13 +59,11 @@ class WebsocketConnection(threading.Thread):
                     heartbeat=settings.WS_HEARTBEAT_TIMEOUT,
                     headers=self._headers,
                 ) as ws:
-                    publish_commands_task = asyncio.create_task(
-                        self._api.publish_commands(ws)
-                    )
+                    self._ws = ws
                     async for msg in ws:
                         if msg.type == aiohttp.WSMsgType.TEXT:
                             ws_event = WsEvent.parse_raw(msg.data)
-                            self._api.notify(ws_event)
+                            self._event_queue.put_nowait(ws_event)
         except aiohttp.ClientConnectionError:
             logger.error("Connection error")
         except Exception as err:  # pylint: disable=broad-except
@@ -69,6 +71,4 @@ class WebsocketConnection(threading.Thread):
         else:
             logger.error("Connection lost")
         finally:
-            self._api.notify(ExitEvent())
-            if publish_commands_task:
-                publish_commands_task.cancel()
+            self._event_queue.put_nowait(ExitEvent())

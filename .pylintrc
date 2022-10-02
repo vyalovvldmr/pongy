@@ -6,6 +6,7 @@ disable=
     too-many-instance-attributes
 good-names=
     ws,
+    ui,
 extension-pkg-whitelist=
     pydantic,
     pygame,

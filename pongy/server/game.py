@@ -1,6 +1,5 @@
 import asyncio
 import logging
-from types import TracebackType
 from typing import Any
 
 from pongy import settings
@@ -124,12 +123,7 @@ class GamePool:
             GamePool._awaiting = None
         return self._game
 
-    async def __aexit__(
-        self,
-        exc_type: type[BaseException] | None,
-        exc_val: BaseException | None,
-        exc_tb: TracebackType | None,
-    ) -> None:
+    async def __aexit__(self, *args: tuple[Any, ...]) -> None:
         if self._game:
             self._game.remove_player(self._player)
             if GamePool._awaiting is self._game and self._game.is_empty:
