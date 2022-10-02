@@ -33,7 +33,7 @@ def main(daemon: bool, host: str, port: int) -> None:
 
         web.run_app(get_application(), host=host, port=port)
     else:
-        from pongy.ui.app import Application
+        from pongy.client.app import Application
 
         app = Application(host, port)
         app.run()
