@@ -11,7 +11,7 @@ class BaseScoreWidget:
         self._score = str(score)
 
     def draw(self, surface: pygame.surface.Surface) -> None:
-        font = pygame.font.SysFont("arial", settings.SCORE_TEXT_SIZE)
+        font = pygame.font.Font(None, settings.SCORE_TEXT_SIZE)
         text = font.render(self._score, True, settings.SCORE_COLOR)
         surface.blit(text, self.position)
 

@@ -4,6 +4,7 @@ import uuid
 import pygame
 
 from pongy import settings
+from pongy import version
 from pongy.client.api import Api
 from pongy.client.connection import ExitEvent
 from pongy.client.widgets.ball import BallWidget
@@ -27,6 +28,7 @@ class Application:
 
     def run(self) -> None:
         pygame.init()
+        pygame.display.set_caption(f"Pongy v{version}")
         surface = pygame.display.set_mode((settings.BOARD_SIZE, settings.BOARD_SIZE))
         surface.fill(settings.BOARD_COLOR)
         while True:
