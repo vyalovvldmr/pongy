@@ -20,7 +20,7 @@ from pongy.server.racket import TopRacket
 logger = logging.getLogger(__name__)
 
 
-class PlayerDuplicatedIdError(Exception):
+class DuplicatedIdError(Exception):
     pass
 
 
@@ -38,7 +38,7 @@ class Game:
 
     def add_player(self, player: IPlayer) -> None:
         if player.uuid in [p.uuid for p in self.players]:
-            raise PlayerDuplicatedIdError("Duplicated player uuid")
+            raise DuplicatedIdError("Duplicated player uuid")
         player.racket = self.available_rackets.pop()
         self.players.append(player)
         logger.debug("Added new player")

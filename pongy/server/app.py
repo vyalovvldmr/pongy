@@ -12,8 +12,8 @@ from pongy.models import WsCookie
 from pongy.models import WsErrorEvent
 from pongy.models import WsErrorEventPayload
 from pongy.models import WsEvent
+from pongy.server.game import DuplicatedIdError
 from pongy.server.game import GamePool
-from pongy.server.game import PlayerDuplicatedIdError
 from pongy.server.player import Player
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class WebsocketHandler(web.View):
                 ";".join(" ".join(map(str, e.values())) for e in error.errors())
             )
             logger.warning(message)
-        if isinstance(error, PlayerDuplicatedIdError):
+        if isinstance(error, DuplicatedIdError):
             message = str(error)
             logger.warning(message)
         else:
