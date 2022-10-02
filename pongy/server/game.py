@@ -20,6 +20,10 @@ from pongy.server.racket import TopRacket
 logger = logging.getLogger(__name__)
 
 
+class PlayerDuplicatedIdError(Exception):
+    pass
+
+
 class Game:
     def __init__(self) -> None:
         self.available_rackets: list[IRacket] = [
@@ -33,10 +37,9 @@ class Game:
         self._run_task: asyncio.Task[Any] = asyncio.create_task(self.run())
 
     def add_player(self, player: IPlayer) -> None:
-        try:
-            player.racket = self.available_rackets.pop()
-        except IndexError:
-            logger.error("No available racket error")
+        if player.uuid in [p.uuid for p in self.players]:
+            raise PlayerDuplicatedIdError("Duplicated player uuid")
+        player.racket = self.available_rackets.pop()
         self.players.append(player)
         logger.debug("Added new player")
 
