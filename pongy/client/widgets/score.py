@@ -11,9 +11,10 @@ class BaseScoreWidget:
         self._score = str(score)
 
     def draw(self, surface: pygame.surface.Surface) -> None:
-        font = pygame.font.Font(None, settings.SCORE_TEXT_SIZE)
-        text = font.render(self._score, True, settings.SCORE_COLOR)
-        surface.blit(text, self.position)
+        font = pygame.font.Font(None, settings.SCORE_FONT_SIZE)
+        text = font.render(self._score, True, settings.SCORE_FONT_COLOR)
+        text_rect = text.get_rect(center=self.position)
+        surface.blit(text, text_rect)
 
 
 class BottomScoreWidget(BaseScoreWidget):
