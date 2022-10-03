@@ -26,4 +26,6 @@ $ pongy -d
 $ pongy -h <server-ip>
 ```
 
-![UI screenshot](https://github.com/vyalovvldmr/pongy/blob/main/screen.gif?raw=true)
+<p align="center">
+    <img src="https://github.com/vyalovvldmr/pongy/blob/main/screen.gif?raw=true" alt="UI screenshot"/>
+</p>
