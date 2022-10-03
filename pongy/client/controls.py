@@ -3,7 +3,7 @@ import pygame
 from pongy.models import MoveDirection
 
 
-class KeyBoardControls:
+class KeyboardControls:
     @staticmethod
     def is_exit_pressed() -> bool:
         for event in pygame.event.get():
