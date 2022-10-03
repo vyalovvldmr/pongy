@@ -1,6 +1,6 @@
 # Pongy
 
-Ping-pong multiplayer client-server game up to 4 players over network.
+Ping-pong multiplayer client-server game up to 4 players.
 
 Tested on Mac OS and Windows.
 
