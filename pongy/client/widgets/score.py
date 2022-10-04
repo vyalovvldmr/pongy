@@ -1,7 +1,14 @@
+from typing import Protocol
+
 import pygame
 
 from pongy import settings
 from pongy.models import BoardSide
+
+
+class IScoreWidget(Protocol):
+    def draw(self, surface: pygame.surface.Surface) -> None:
+        pass
 
 
 class BaseScoreWidget:
@@ -49,7 +56,7 @@ class ScoreWidgetFactory:
     def __init__(self, side: BoardSide):
         self.side = side
 
-    def create(self, score: int) -> BaseScoreWidget:
+    def create(self, score: int) -> IScoreWidget:
         mapping = {
             BoardSide.RIGHT: RightScoreWidget,
             BoardSide.LEFT: LeftScoreWidget,

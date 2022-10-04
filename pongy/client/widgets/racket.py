@@ -1,7 +1,14 @@
+from typing import Protocol
+
 import pygame
 
 from pongy import settings
 from pongy.models import BoardSide
+
+
+class IRacketWidget(Protocol):
+    def draw(self, surface: pygame.surface.Surface) -> None:
+        pass
 
 
 class BaseRacketWidget:
@@ -86,7 +93,7 @@ class RacketWidgetFactory:
     def __init__(self, side: BoardSide):
         self.side = side
 
-    def create(self, position: int) -> BaseRacketWidget:
+    def create(self, position: int) -> IRacketWidget:
         mapping = {
             BoardSide.RIGHT: RightRacketWidget,
             BoardSide.LEFT: LeftRacketWidget,
