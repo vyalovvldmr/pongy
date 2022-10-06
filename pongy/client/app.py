@@ -19,7 +19,7 @@ class Application:
             host=host, port=port, headers={"Cookie": f"player_id={player_id}"}
         )
 
-    async def run(self) -> None:
+    async def __call__(self) -> None:
         async with self.connection as connection:
             while True:
                 event = await connection.get_event_blocking()

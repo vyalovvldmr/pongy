@@ -38,8 +38,7 @@ def main(daemon: bool, host: str, port: int) -> None:
         from pongy.client.app import Application
 
         app = Application(host, port)
-        loop = asyncio.new_event_loop()
-        loop.run_until_complete(app.run())
+        asyncio.run(app())
 
 
 if __name__ == "__main__":
